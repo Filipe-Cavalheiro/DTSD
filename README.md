@@ -1,2 +1,8 @@
-# DTSD
-This project englobes the development of an esp32 obtaning data from multiple sensors, use of firebase as the database and flutter as the frontend as a mobile app
+# DTSD (development of tests in digital systems)
+
+## Objectives
+- Obtain data from multiple sensors
+- Store and process data (Esp32)
+- Store data on a database (Firebase)
+- Show this data on an Android App (Flutter)
+- Actuate upon the received and stored data (To be Decided)
