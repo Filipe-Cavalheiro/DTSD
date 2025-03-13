@@ -60,15 +60,17 @@ void setup() {
 
   // text display tests
   display.setTextSize(1);
-  display.setTextColor(65535);
+  display.setTextColor(SH110X_WHITE);
   display.setCursor(0,0);
   display.display(); // actually display all of the above
 }
 
 void loop() {
-  display.print("A");
-  Serial.print("A");
-  delay(1000);
+  display.print("FUCK OFF");
+  delay(10);
   yield();
   display.display();
+  delay(10);
+  display.clearDisplay();
+  display.setCursor(0,0);
 }
