@@ -58,24 +58,17 @@ void setup() {
   display.setRotation(1);
   Serial.println("Button test");
 
-  pinMode(BUTTON_A, INPUT_PULLUP);
-  pinMode(BUTTON_B, INPUT_PULLUP);
-  pinMode(BUTTON_C, INPUT_PULLUP);
-
   // text display tests
   display.setTextSize(1);
-  display.setTextColor(SH110X_WHITE);
+  display.setTextColor(65535);
   display.setCursor(0,0);
-  display.print("Connecting to SSID\n'adafruit':");
-  display.print("connected!");
-  display.println("IP: 10.0.1.23");
-  display.println("Sending val #0");
   display.display(); // actually display all of the above
 }
 
 void loop() {
   display.print("A");
-  delay(10);
+  Serial.print("A");
+  delay(1000);
   yield();
   display.display();
 }
