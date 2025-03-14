@@ -3,6 +3,12 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
+#include <Adafruit_SH110X.h>
+
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
+
 
 Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
 
@@ -36,9 +42,29 @@ Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
   #define BUTTON_C  5
 #endif
 
+//Pins Sensores
+#define DHTTYPE    DHT22
+#define DHTPIN 5     // Digital pin connected to the DHT sensor 
+#define PIRPIN 4     // Digital pin connected to the PIR sensor 
+#define PRPIN 34     // Digital pin connected to the PR sensor 
+#define BUZZPIN 32     // Digital pin connected to the Buzzer 
+
+DHT_Unified dht(DHTPIN, DHTTYPE);
+
+uint32_t delayMS;
+
 void setup() {
   Serial.begin(115200);
 
+  dht.begin();
+  sensor_t sensor;
+  dht.temperature().getSensor(&sensor);
+  dht.humidity().getSensor(&sensor);
+
+  pinMode(PIRPIN,INPUT);
+  pinMode(PRPIN,INPUT);
+  pinMode(BUZZPIN,OUTPUT);
+  
   Serial.println("128x64 OLED FeatherWing test");
   delay(250); // wait for the OLED to power up
   display.begin(0x3C, true); // Address 0x3C default
@@ -63,14 +89,35 @@ void setup() {
   display.setTextColor(SH110X_WHITE);
   display.setCursor(0,0);
   display.display(); // actually display all of the above
+
+  delayMS = sensor.min_delay / 1000;
+
 }
 
 void loop() {
-  display.print("FUCK OFF");
-  delay(10);
+  //Sensor PIR
+  if (digitalRead(PIRPIN) == HIGH){
+    display.println("OLa");
+    digitalWrite(BUZZPIN, HIGH);
+  } 
+  else {
+    display.println("Adeus");
+    digitalWrite(BUZZPIN, LOW);
+  }
+
+  //Sensor PR
+  display.println(analogRead(PRPIN));
+
+  //Sensor
+  sensors_event_t event;
+  dht.temperature().getEvent(&event);
+  display.println(event.temperature); 
+  dht.humidity().getEvent(&event);
+  display.println(event.relative_humidity);
+  delay(delayMS);
   yield();
   display.display();
   delay(10);
   display.clearDisplay();
   display.setCursor(0,0);
-}
+} 
