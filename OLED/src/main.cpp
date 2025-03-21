@@ -48,6 +48,8 @@ Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
 #define PIRPIN 4     // Digital pin connected to the PIR sensor 
 #define PRPIN 34     // Digital pin connected to the PR sensor 
 #define BUZZPIN 32     // Digital pin connected to the Buzzer 
+#define BTPIN 26     // Digital pin connected to the Buzzer 
+
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
@@ -64,6 +66,8 @@ void setup() {
   pinMode(PIRPIN,INPUT);
   pinMode(PRPIN,INPUT);
   pinMode(BUZZPIN,OUTPUT);
+  pinMode(BTPIN,INPUT);
+
   
   Serial.println("128x64 OLED FeatherWing test");
   delay(250); // wait for the OLED to power up
@@ -90,30 +94,46 @@ void setup() {
   display.setCursor(0,0);
   display.display(); // actually display all of the above
 
-  delayMS = sensor.min_delay / 1000;
+  delayMS = 100;
 
 }
 
 void loop() {
   //Sensor PIR
   if (digitalRead(PIRPIN) == HIGH){
-    display.println("OLa");
+    display.println("Detetado");
     digitalWrite(BUZZPIN, HIGH);
+
   } 
   else {
-    display.println("Adeus");
+    display.println("Nao Detetado");
     digitalWrite(BUZZPIN, LOW);
   }
 
+  if (digitalRead(BTPIN) == HIGH){
+    display.println(1);
+
+  } 
+  else {
+    display.println(0);
+  }
+
   //Sensor PR
-  display.println(analogRead(PRPIN));
+  char lux[100];
+  float lum = analogRead(PRPIN);
+  snprintf(lux, sizeof(lux), "Luminosidade=%.2f", lum);
+  display.println(lux);
 
   //Sensor
   sensors_event_t event;
   dht.temperature().getEvent(&event);
-  display.println(event.temperature); 
+  char temp[100];
+    snprintf(temp, sizeof(temp), "Temperatura=%.2f oC",event.temperature);
+  display.println(temp); 
   dht.humidity().getEvent(&event);
-  display.println(event.relative_humidity);
+  char hum[100];
+    snprintf(hum, sizeof(hum), "Humidade=%.2f%",event.relative_humidity);
+  display.println(hum);
   delay(delayMS);
   yield();
   display.display();

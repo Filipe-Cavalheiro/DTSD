@@ -8,14 +8,14 @@
 #include "addons/RTDBHelper.h"
 
 // Insert your network credentials
-#define WIFI_SSID "REPLACE_WITH_YOUR_SSID"
-#define WIFI_PASSWORD "REPLACE_WITH_YOUR_PASSWORD"
+#define WIFI_SSID "ola"
+#define WIFI_PASSWORD "ola12345"
 
 // Insert Firebase project API Key
-#define API_KEY "REPLACE_WITH_YOUR_FIREBASE_PROJECT_API_KEY"
+#define API_KEY ""
 
 // Insert RTDB URLefine the RTDB URL */
-#define DATABASE_URL "REPLACE_WITH_YOUR_FIREBASE_DATABASE_URL" 
+#define DATABASE_URL "https://console.firebase.google.com/u/1/project/dtsd-fjd/database/dtsd-fjd-default-rtdb/data/~2F" 
 
 //Define Firebase Data object
 FirebaseData fbdo;
