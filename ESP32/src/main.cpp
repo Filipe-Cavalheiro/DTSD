@@ -29,9 +29,18 @@ int count = 0;
 bool signupOK = false;
 bool firebaseEnabled = false;  // Flag to enable/disable Firebase
 Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
+String uid;
 
 void setup() {
   Serial.begin(115200);
+  display.begin(0x3C, true);
+  display.clearDisplay();
+  display.setRotation(1);
+  display.setTextSize(1);
+  display.setTextColor(SH110X_WHITE);
+  display.setCursor(0, 0);
+  delayMS = 100;
+
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   unsigned long time = millis();
@@ -68,17 +77,11 @@ void setup() {
   pinMode(BUZZPIN, OUTPUT);
   pinMode(BTPIN, INPUT);
 
-  display.begin(0x3C, true);
-  display.clearDisplay();
-  display.setRotation(1);
-  display.setTextSize(1);
-  display.setTextColor(SH110X_WHITE);
-  display.setCursor(0, 0);
-  delayMS = 100;
+  uid = auth.token.uid.c_str();
 }
 
 void loop() {
-  if (firebaseEnabled && Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0)) {
+  if (firebaseEnabled && Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 500 || sendDataPrevMillis == 0)) {
     sendDataPrevMillis = millis();
     if (!Firebase.RTDB.setInt(&fbdo, "test/int", count)) {
       Serial.println("Firebase error: ");
@@ -91,28 +94,33 @@ void loop() {
       Serial.println(fbdo.errorReason());
       firebaseEnabled = false;
     }
+
+     display.clearDisplay();
+     display.setCursor(0, 0);
+     if (digitalRead(PIRPIN) == HIGH) {
+       display.println("Detetado");
+       Firebase.RTDB.setInt(&fbdo, "", true);
+       digitalWrite(BUZZPIN, HIGH);
+     } else {
+       display.println("Nao Detetado");
+       digitalWrite(BUZZPIN, LOW);
+     }
+   
+     display.println(digitalRead(BTPIN) == HIGH ? "1" : "0");
+     float lum = analogRead(PRPIN);
+     display.printf("Luminosidade=%.2f\n", lum);
+     
+     sensors_event_t event;
+     dht.temperature().getEvent(&event);
+     display.printf("Temperatura=%.2f oC\n", event.temperature);
+     dht.humidity().getEvent(&event);
+     display.printf("Humidade=%.2f%%\n", event.relative_humidity);
+   
+     display.display();
+     Serial.println(uid);
+     delay(delayMS);
+
   }
 
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  if (digitalRead(PIRPIN) == HIGH) {
-    display.println("Detetado");
-    digitalWrite(BUZZPIN, HIGH);
-  } else {
-    display.println("Nao Detetado");
-    digitalWrite(BUZZPIN, LOW);
-  }
-
-  display.println(digitalRead(BTPIN) == HIGH ? "1" : "0");
-  float lum = analogRead(PRPIN);
-  display.printf("Luminosidade=%.2f\n", lum);
   
-  sensors_event_t event;
-  dht.temperature().getEvent(&event);
-  display.printf("Temperatura=%.2f oC\n", event.temperature);
-  dht.humidity().getEvent(&event);
-  display.printf("Humidade=%.2f%%\n", event.relative_humidity);
-
-  display.display();
-  delay(delayMS);
 }
