@@ -34,9 +34,15 @@ void setup() {
   Serial.begin(115200);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
+  unsigned long time = millis();
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(300);
+    //1 minute until it gives up
+    if(millis() - time > 60000){
+      Serial.print("Times Out connection movin on without WiFi\n");
+      break;
+    }
   }
   Serial.println();
   Serial.print("Connected with IP: ");
