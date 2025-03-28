@@ -2,20 +2,12 @@
 #include <WiFi.h>
 #include <Firebase_ESP_Client.h>
 
+#include "secrets.env.h"
+
 //Provide the token generation process info.
 #include "addons/TokenHelper.h"
 //Provide the RTDB payload printing info and other helper functions.
 #include "addons/RTDBHelper.h"
-
-// Insert your network credentials
-#define WIFI_SSID "ola"
-#define WIFI_PASSWORD "ola12345"
-
-// Insert Firebase project API Key
-#define API_KEY ""
-
-// Insert RTDB URLefine the RTDB URL */
-#define DATABASE_URL "https://console.firebase.google.com/u/1/project/dtsd-fjd/database/dtsd-fjd-default-rtdb/data/~2F" 
 
 //Define Firebase Data object
 FirebaseData fbdo;
