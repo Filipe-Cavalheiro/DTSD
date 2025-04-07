@@ -25,11 +25,15 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 unsigned long sendDataPrevMillis = 0;
-int count = 0;
 bool signupOK = false;
 bool firebaseEnabled = false;  // Flag to enable/disable Firebase
+char* id;
 Adafruit_SH1107 display = Adafruit_SH1107(64, 128, &Wire);
-String uid;
+
+char data_path_temperature[100];
+char data_path_humidity[100];
+char data_path_lum[100];
+char data_path_motion[100];
 
 void setup() {
   Serial.begin(115200);
@@ -39,7 +43,7 @@ void setup() {
   display.setTextSize(1);
   display.setTextColor(SH110X_WHITE);
   display.setCursor(0, 0);
-  delayMS = 100;
+  delayMS = 1000;
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
@@ -77,19 +81,50 @@ void setup() {
   pinMode(BUZZPIN, OUTPUT);
   pinMode(BTPIN, INPUT);
 
-  uid = auth.token.uid.c_str();
+  String uid = auth.token.uid.c_str();
+  Serial.println(uid);
+  int id_size = 2*(sizeof(uid)/sizeof(const char))*sizeof(char);
+
+  id = (char*) malloc(id_size);
+  
+  snprintf(id, id_size, "%s", uid.c_str());
+
+  sniprintf(data_path_temperature, 100*sizeof(char), "%s/temperature", id);
+  sniprintf(data_path_humidity, 100*sizeof(char), "%s/humidity", id);
+  sniprintf(data_path_lum, 100*sizeof(char), "%s/lum", id);
+  sniprintf(data_path_motion, 100*sizeof(char), "%s/motion", id);
 }
 
 void loop() {
   if (firebaseEnabled && Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 500 || sendDataPrevMillis == 0)) {
+    //Get sensor data
+    sensors_event_t event;
+    dht.temperature().getEvent(&event);
+    float temperature = event.temperature;
+    dht.humidity().getEvent(&event);
+    float humidity = event.relative_humidity;
+    float lum = analogRead(PRPIN);
+    bool motion =  digitalRead(PIRPIN);
+    bool button = digitalRead(BTPIN);
+
     sendDataPrevMillis = millis();
-    if (!Firebase.RTDB.setInt(&fbdo, "test/int", count)) {
+
+    if (!Firebase.RTDB.setFloat(&fbdo, data_path_temperature, temperature)) {
       Serial.println("Firebase error: ");
       Serial.println(fbdo.errorReason());
       firebaseEnabled = false;  // Disable Firebase on failure
     }
-    count++;
-    if (!Firebase.RTDB.setFloat(&fbdo, "test/float", 0.01 + random(0, 100))) {
+    if (!Firebase.RTDB.setFloat(&fbdo, data_path_humidity, humidity)) {
+      Serial.println("Firebase error: ");
+      Serial.println(fbdo.errorReason());
+      firebaseEnabled = false;
+    }
+    if (!Firebase.RTDB.setFloat(&fbdo, data_path_lum, lum)) {
+      Serial.println("Firebase error: ");
+      Serial.println(fbdo.errorReason());
+      firebaseEnabled = false;
+    }
+    if (!Firebase.RTDB.setBool(&fbdo, data_path_motion, motion)) {
       Serial.println("Firebase error: ");
       Serial.println(fbdo.errorReason());
       firebaseEnabled = false;
@@ -97,7 +132,7 @@ void loop() {
 
      display.clearDisplay();
      display.setCursor(0, 0);
-     if (digitalRead(PIRPIN) == HIGH) {
+     if (motion == HIGH) {
        display.println("Detetado");
        Firebase.RTDB.setInt(&fbdo, "", true);
        digitalWrite(BUZZPIN, HIGH);
@@ -105,22 +140,12 @@ void loop() {
        display.println("Nao Detetado");
        digitalWrite(BUZZPIN, LOW);
      }
-   
-     display.println(digitalRead(BTPIN) == HIGH ? "1" : "0");
-     float lum = analogRead(PRPIN);
+     display.println(button == HIGH ? "1" : "0");
      display.printf("Luminosidade=%.2f\n", lum);
-     
-     sensors_event_t event;
-     dht.temperature().getEvent(&event);
-     display.printf("Temperatura=%.2f oC\n", event.temperature);
-     dht.humidity().getEvent(&event);
-     display.printf("Humidade=%.2f%%\n", event.relative_humidity);
-   
+     display.printf("Temperatura=%.2f oC\n", temperature);
+     display.printf("Humidade=%.2f%%\n", humidity);
      display.display();
-     Serial.println(uid);
+     
      delay(delayMS);
-
   }
-
-  
 }
